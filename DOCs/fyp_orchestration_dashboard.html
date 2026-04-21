@@ -1,0 +1,262 @@
+
+<style>
+  :root { --gap: 12px; }
+  .section { margin-bottom: 2rem; }
+  .section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 10px; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: var(--border-radius-md); }
+  .badge-claude { background: var(--color-background-info); color: var(--color-text-info); }
+  .badge-gemini { background: var(--color-background-success); color: var(--color-text-success); }
+  .badge-both { background: var(--color-background-warning); color: var(--color-text-warning); }
+  .badge-done { background: var(--color-background-secondary); color: var(--color-text-secondary); }
+  .badge-inprog { background: var(--color-background-warning); color: var(--color-text-warning); }
+  .badge-todo { background: var(--color-background-danger); color: var(--color-text-danger); }
+  .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+  .role-card { border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; border: 0.5px solid; }
+  .role-claude { background: var(--color-background-info); border-color: var(--color-border-info); }
+  .role-gemini { background: var(--color-background-success); border-color: var(--color-border-success); }
+  .role-title { font-size: 14px; font-weight: 500; margin: 0 0 4px; }
+  .role-sub { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 10px; }
+  .role-item { font-size: 12px; color: var(--color-text-secondary); padding: 2px 0; }
+  .role-item::before { content: "→ "; }
+  .task-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .task-row:last-child { border-bottom: none; }
+  .task-num { font-size: 11px; color: var(--color-text-secondary); min-width: 20px; padding-top: 2px; }
+  .task-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .task-desc { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+  .task-meta { display: flex; gap: 6px; margin-top: 5px; }
+  .progress-bar-wrap { background: var(--color-background-secondary); border-radius: 4px; height: 6px; flex: 1; overflow: hidden; }
+  .progress-bar { height: 100%; border-radius: 4px; background: var(--color-background-info); transition: width .4s; }
+  .progress-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .progress-label { font-size: 12px; min-width: 110px; color: var(--color-text-secondary); }
+  .progress-pct { font-size: 12px; color: var(--color-text-secondary); min-width: 30px; text-align: right; }
+  .workflow-step { display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start; }
+  .ws-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+  .ws-claude { background: var(--color-background-info); color: var(--color-text-info); }
+  .ws-gemini { background: var(--color-background-success); color: var(--color-text-success); }
+  .ws-body { font-size: 13px; color: var(--color-text-secondary); padding-top: 5px; }
+  .ws-label { font-weight: 500; color: var(--color-text-primary); }
+  .nextstep { background: var(--color-background-warning); border: 0.5px solid var(--color-border-warning); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+  .nextstep-title { font-size: 13px; font-weight: 500; color: var(--color-text-warning); margin: 0 0 8px; }
+  .nextstep-item { font-size: 13px; color: var(--color-text-secondary); padding: 3px 0; }
+  .nextstep-item::before { content: "▸ "; color: var(--color-text-warning); }
+  table.tracker { width: 100%; font-size: 12px; border-collapse: collapse; }
+  table.tracker th { font-weight: 500; text-align: left; color: var(--color-text-secondary); padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  table.tracker td { padding: 7px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); vertical-align: top; }
+  table.tracker tr:last-child td { border-bottom: none; }
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); margin-bottom: 1rem; }
+  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: .8rem; }
+  .metric-val { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+  .metric-lbl { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+  @media (max-width: 500px) { .role-grid { grid-template-columns: 1fr; } .summary-grid { grid-template-columns: 1fr 1fr; } }
+</style>
+
+<div style="padding: 1rem 0;">
+
+  <!-- Header -->
+  <div style="margin-bottom: 1.5rem;">
+    <div style="font-size: 20px; font-weight: 500; color: var(--color-text-primary);">FYP Command Center</div>
+    <div style="font-size: 13px; color: var(--color-text-secondary); margin-top: 4px;">AI-Based Emotional Intelligence (EI) Assessment Web App — 1-Week Sprint</div>
+  </div>
+
+  <!-- Summary Metrics -->
+  <div class="summary-grid">
+    <div class="metric"><div class="metric-val">5</div><div class="metric-lbl">Modules</div></div>
+    <div class="metric"><div class="metric-val">18</div><div class="metric-lbl">Tasks</div></div>
+    <div class="metric"><div class="metric-val">7</div><div class="metric-lbl">Days</div></div>
+    <div class="metric"><div class="metric-val">0%</div><div class="metric-lbl">Complete</div></div>
+  </div>
+
+  <!-- Phase 1: FYP Summary -->
+  <div class="section">
+    <div class="section-title">Phase 1 — FYP Summary</div>
+    <div class="card">
+      <div style="font-size: 14px; font-weight: 500; margin-bottom: 10px;">Project: AI-Powered Emotional Intelligence Assessment System</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 13px; color: var(--color-text-secondary);">
+        <div>
+          <div style="font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px;">What it does</div>
+          <div>Measures EQ using OECD-standard MCQ tests, generates scores, and delivers recommendations based on user tier.</div>
+        </div>
+        <div>
+          <div style="font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px;">User tiers</div>
+          <div><b>Guest:</b> EQ level only (Basic/Moderate/High)<br><b>Premium/Admin:</b> Full AI-generated recommendations</div>
+        </div>
+        <div>
+          <div style="font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px;">Tech stack</div>
+          <div>HTML/CSS/JS + PHP + MySQL (XAMPP) + AI API for feedback generation + Chart.js for visualization</div>
+        </div>
+        <div>
+          <div style="font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px;">Current state</div>
+          <div>UI done, 2 modules working, documentation started</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 2: Team Roles -->
+  <div class="section">
+    <div class="section-title">Phase 2 — Team Roles</div>
+    <div class="role-grid">
+      <div class="role-card role-claude">
+        <div class="role-title" style="color: var(--color-text-info);">Claude — Developer</div>
+        <div class="role-sub">Writes all code, implements features, debugs</div>
+        <div class="role-item">PHP backend logic & scoring engine</div>
+        <div class="role-item">MySQL schema & queries</div>
+        <div class="role-item">AI API integration for recommendations</div>
+        <div class="role-item">Chart.js result visualization</div>
+        <div class="role-item">Session & auth logic</div>
+        <div class="role-item">Responsive frontend fixes</div>
+      </div>
+      <div class="role-card role-gemini">
+        <div class="role-title" style="color: var(--color-text-success);">Gemini — Planner & Reviewer</div>
+        <div class="role-sub">Plans, researches, reviews all output</div>
+        <div class="role-item">OECD MCQ structure & scoring methodology</div>
+        <div class="role-item">AI prompt engineering for recommendations</div>
+        <div class="role-item">Data validation rules & edge cases</div>
+        <div class="role-item">UX flow review per module</div>
+        <div class="role-item">Final QA checklist</div>
+        <div class="role-item">Documentation structure</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3: Task Breakdown -->
+  <div class="section">
+    <div class="section-title">Phase 3 — Task Breakdown (All 5 Modules)</div>
+    <div class="card" style="padding: 0.75rem 1.25rem;">
+
+      <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary); padding: 6px 0 4px; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 4px;">Module 1 — Auth & User Roles (Day 1)</div>
+      <div class="task-row">
+        <div class="task-num">1.1</div>
+        <div style="flex:1"><div class="task-name">User registration & login (PHP + MySQL)</div><div class="task-desc">Guest vs Premium vs Admin session handling</div><div class="task-meta"><span class="badge badge-claude">Claude</span></div></div>
+      </div>
+      <div class="task-row">
+        <div class="task-num">1.2</div>
+        <div style="flex:1"><div class="task-name">Role-based access control</div><div class="task-desc">Restrict recommendation pages to premium/admin only</div><div class="task-meta"><span class="badge badge-claude">Claude</span></div></div>
+      </div>
+      <div class="task-row">
+        <div class="task-num">1.3</div>
+        <div style="flex:1"><div class="task-name">Review auth flow & DB schema</div><div class="task-desc">Validate user table design and role logic</div><div class="task-meta"><span class="badge badge-gemini">Gemini</span></div></div>
+      </div>
+
+      <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary); padding: 10px 0 4px; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 4px;">Module 2 — OECD MCQ Assessment Engine (Day 2)</div>
+      <div class="task-row">
+        <div class="task-num">2.1</div>
+        <div style="flex:1"><div class="task-name">Structure OECD MCQ question bank</div><div class="task-desc">Define EI domains, question set, Likert responses</div><div class="task-meta"><span class="badge badge-gemini">Gemini</span></div></div>
+      </div>
+      <div class="task-row">
+        <div class="task-num">2.2</div>
+        <div style="flex:1"><div class="task-name">MCQ quiz UI & form handler (PHP)</div><div class="task-desc">Render questions, capture responses, store in DB</div><div class="task-meta"><span class="badge badge-claude">Claude</span></div></div>
+      </div>
+      <div class="task-row">
+        <div class="task-num">2.3</div>
+        <div style="flex:1"><div class="task-name">Automated scoring logic</div><div class="task-desc">Calculate sub-domain and total EQ scores</div><div class="task-meta"><span class="badge badge-claude">Claude</span></div></div>
+      </div>
+
+      <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary); padding: 10px 0 4px; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 4px;">Module 3 — EQ Results & Visualization (Day 3)</div>
+      <div class="task-row">
+        <div class="task-num">3.1</div>
+        <div style="flex:1"><div class="task-name">EQ level classification logic</div><div class="task-desc">Map score → Basic / Moderate / High (for guest output)</div><div class="task-meta"><span class="badge badge-gemini">Gemini</span></div></div>
+      </div>
+      <div class="task-row">
+        <div class="task-num">3.2</div>
+        <div style="flex:1"><div class="task-name">Results page with Chart.js</div><div class="task-desc">Radar/bar chart of EI sub-domain scores</div><div class="task-meta"><span class="badge badge-claude">Claude</span></div></div>
+      </div>
+      <div class="task-row">
+        <div class="task-num">3.3</div>
+        <div style="flex:1"><div class="task-name">Guest vs Premium result gating</div><div class="task-desc">Show EQ label to guest, full report to premium</div><div class="task-meta"><span class="badge badge-claude">Claude</span></div></div>
+      </div>
+
+      <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary); padding: 10px 0 4px; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 4px;">Module 4 — AI Recommendation Engine (Day 4–5)</div>
+      <div class="task-row">
+        <div class="task-num">4.1</div>
+        <div style="flex:1"><div class="task-name">Design AI prompt templates</div><div class="task-desc">Per sub-domain prompts based on score ranges</div><div class="task-meta"><span class="badge badge-gemini">Gemini</span></div></div>
+      </div>
+      <div class="task-row">
+        <div class="task-num">4.2</div>
+        <div style="flex:1"><div class="task-name">AI API integration (PHP cURL)</div><div class="task-desc">Send score + prompt, parse and store AI response</div><div class="task-meta"><span class="badge badge-claude">Claude</span></div></div>
+      </div>
+      <div class="task-row">
+        <div class="task-num">4.3</div>
+        <div style="flex:1"><div class="task-name">Recommendation display UI</div><div class="task-desc">Premium/admin-only page showing AI insights</div><div class="task-meta"><span class="badge badge-claude">Claude</span></div></div>
+      </div>
+      <div class="task-row">
+        <div class="task-num">4.4</div>
+        <div style="flex:1"><div class="task-name">Review & test AI output quality</div><div class="task-desc">Prompt refinement, validate response relevance</div><div class="task-meta"><span class="badge badge-gemini">Gemini</span></div></div>
+      </div>
+
+      <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary); padding: 10px 0 4px; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 4px;">Module 5 — Admin Panel & Final QA (Day 6–7)</div>
+      <div class="task-row">
+        <div class="task-num">5.1</div>
+        <div style="flex:1"><div class="task-name">Admin dashboard (user list, scores, reports)</div><div class="task-desc">View all user EQ data, export if needed</div><div class="task-meta"><span class="badge badge-claude">Claude</span></div></div>
+      </div>
+      <div class="task-row">
+        <div class="task-num">5.2</div>
+        <div style="flex:1"><div class="task-name">Responsive design QA</div><div class="task-desc">Test on mobile/tablet, fix layout breaks</div><div class="task-meta"><span class="badge badge-both">Both</span></div></div>
+      </div>
+      <div class="task-row">
+        <div class="task-num">5.3</div>
+        <div style="flex:1"><div class="task-name">Full system test & bug fix</div><div class="task-desc">End-to-end guest + premium + admin flows</div><div class="task-meta"><span class="badge badge-both">Both</span></div></div>
+      </div>
+      <div class="task-row">
+        <div class="task-num">5.4</div>
+        <div style="flex:1"><div class="task-name">Documentation finalization</div><div class="task-desc">SRS, user manual, methodology writeup</div><div class="task-meta"><span class="badge badge-gemini">Gemini</span></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Phase 4: Workflow -->
+  <div class="section">
+    <div class="section-title">Phase 4 — Execution Workflow (per task)</div>
+    <div class="card">
+      <div class="workflow-step">
+        <div class="ws-dot ws-gemini">G</div>
+        <div class="ws-body"><span class="ws-label">Gemini briefs:</span> Explains the task, lists inputs/outputs, suggests approach and tools to use</div>
+      </div>
+      <div class="workflow-step">
+        <div class="ws-dot ws-claude">C</div>
+        <div class="ws-body"><span class="ws-label">Claude executes:</span> Writes code/implementation, provides complete working output</div>
+      </div>
+      <div class="workflow-step">
+        <div class="ws-dot ws-gemini">G</div>
+        <div class="ws-body"><span class="ws-label">Gemini reviews:</span> Checks for bugs, edge cases, security issues — confirms completion or requests fix</div>
+      </div>
+      <div class="workflow-step">
+        <div class="ws-dot ws-claude">C</div>
+        <div class="ws-body"><span class="ws-label">Claude patches (if needed):</span> Applies fixes based on Gemini's review, task is marked done</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Tracker -->
+  <div class="section">
+    <div class="section-title">Phase 5 — Progress Tracker</div>
+    <div class="card" style="padding: 0.75rem 1.25rem;">
+      <table class="tracker">
+        <thead><tr><th>Module</th><th>Day</th><th>Owner</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Auth & User Roles</td><td>1</td><td><span class="badge badge-claude">Claude</span></td><td><span class="badge badge-todo">To do</span></td></tr>
+          <tr><td>OECD MCQ Engine</td><td>2</td><td><span class="badge badge-both">Both</span></td><td><span class="badge badge-todo">To do</span></td></tr>
+          <tr><td>EQ Results & Charts</td><td>3</td><td><span class="badge badge-claude">Claude</span></td><td><span class="badge badge-todo">To do</span></td></tr>
+          <tr><td>AI Recommendations</td><td>4–5</td><td><span class="badge badge-both">Both</span></td><td><span class="badge badge-todo">To do</span></td></tr>
+          <tr><td>Admin Panel & QA</td><td>6–7</td><td><span class="badge badge-both">Both</span></td><td><span class="badge badge-todo">To do</span></td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top: 14px;">
+        <div class="progress-row"><div class="progress-label">Overall progress</div><div class="progress-bar-wrap"><div class="progress-bar" style="width: 15%"></div></div><div class="progress-pct">15%</div></div>
+        <div style="font-size: 11px; color: var(--color-text-secondary); margin-top: 2px;">UI + 2 modules already done counts as ~15% complete</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Next Step -->
+  <div class="nextstep">
+    <div class="nextstep-title">Your next step — tell me which task to start</div>
+    <div class="nextstep-item">Say "Start Task 1.1" → I'll play Gemini and brief it, then Claude will write the code</div>
+    <div class="nextstep-item">Tell me which 2 modules are already done so I skip them</div>
+    <div class="nextstep-item">Share your current DB schema if you have one — Claude will build on it</div>
+    <div class="nextstep-item">Tell me which AI API you're using (Claude API, OpenAI, Gemini API) for Task 4.2</div>
+  </div>
+
+</div>

@@ -1,0 +1,13 @@
+# Never commit these
+includes/config.php
+*.env
+.env
+ai_module/api_key.php
+
+# Editor
+.vscode/
+*.DS_Store
+Thumbs.db
+
+# XAMPP
+/logs/

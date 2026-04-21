@@ -1,0 +1,5 @@
+root files:
+require_once __DIR__ . '/includes/initiate.php';
+
+sub folder fiels:
+require_once dirname(__DIR__) . '/includes/initiate.php';

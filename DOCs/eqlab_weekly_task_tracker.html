@@ -1,0 +1,255 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{padding:1rem 0;font-size:14px;color:var(--color-text-primary)}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px}
+.progress-area{display:flex;align-items:center;gap:12px;flex:1}
+.progress-track{flex:1;height:6px;background:var(--color-border-tertiary);border-radius:3px;overflow:hidden;min-width:120px}
+.progress-fill{height:100%;background:#1D9E75;border-radius:3px;transition:width .35s ease}
+.progress-label{font-size:13px;color:var(--color-text-secondary);white-space:nowrap}
+.reset-btn{font-size:12px;color:var(--color-text-tertiary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:5px 12px;background:none;cursor:pointer}
+.reset-btn:hover{background:var(--color-background-secondary)}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;text-align:center}
+.stat-num{font-size:22px;font-weight:500;line-height:1.2}
+.stat-lbl{font-size:11px;color:var(--color-text-tertiary);margin-top:2px}
+.stat-num.done{color:#0F6E56}
+.stat-num.left{color:#185FA5}
+.stat-num.crit{color:#A32D2D}
+.day-block{margin-bottom:14px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.day-header{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer;user-select:none;background:var(--color-background-secondary)}
+.day-header:hover{background:var(--color-background-tertiary)}
+.day-title{font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px}
+.day-badge{font-size:11px;font-weight:400;padding:2px 8px;border-radius:10px}
+.day-prog{font-size:11px;color:var(--color-text-tertiary)}
+.chevron{font-size:10px;color:var(--color-text-tertiary);transition:transform .2s}
+.chevron.open{transform:rotate(180deg)}
+.task-list{display:none}
+.task-list.open{display:block}
+.task-row{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:0.5px solid var(--color-border-tertiary);transition:background .15s;cursor:pointer}
+.task-row:last-child{border-bottom:none}
+.task-row:hover{background:var(--color-background-secondary)}
+.task-row.checked{background:var(--color-background-secondary)}
+.cb{width:16px;height:16px;border:1.5px solid var(--color-border-secondary);border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.cb.ticked{background:#1D9E75;border-color:#1D9E75}
+.cb.ticked::after{content:'';display:block;width:4px;height:7px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translate(-1px,-1px)}
+.task-body{flex:1;min-width:0}
+.task-title{font-size:13px;line-height:1.4;color:var(--color-text-primary);transition:color .15s}
+.task-row.checked .task-title{color:var(--color-text-tertiary);text-decoration:line-through;text-decoration-color:var(--color-border-secondary)}
+.task-meta{display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap}
+.tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:500}
+.tag-crit{background:#FCEBEB;color:#A32D2D}
+.tag-high{background:#FAEEDA;color:#633806}
+.tag-done{background:#E1F5EE;color:#085041}
+.tag-file{background:#E6F1FB;color:#0C447C}
+.tag-ai{background:#FBEAF0;color:#72243E}
+.tag-db{background:#EEEDFE;color:#3C3489}
+@media(prefers-color-scheme:dark){
+  .tag-crit{background:#501313;color:#F09595}
+  .tag-high{background:#412402;color:#FAC775}
+  .tag-done{background:#04342C;color:#9FE1CB}
+  .tag-file{background:#042C53;color:#B5D4F4}
+  .tag-ai{background:#4B1528;color:#ED93B1}
+  .tag-db{background:#26215C;color:#CECBF6}
+}
+.output-tag{font-size:10px;color:var(--color-text-tertiary)}
+</style>
+
+<div class="wrap">
+  <h2 class="sr-only">EQLab one-week task tracker for Khizer Ali</h2>
+
+  <div class="top-bar">
+    <div class="progress-area">
+      <div class="progress-track"><div class="progress-fill" id="pbar" style="width:0%"></div></div>
+      <span class="progress-label" id="plabel">0 / 16 done</span>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">Reset all</button>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat"><div class="stat-num done" id="s-done">0</div><div class="stat-lbl">completed</div></div>
+    <div class="stat"><div class="stat-num left" id="s-left">16</div><div class="stat-lbl">remaining</div></div>
+    <div class="stat"><div class="stat-num crit" id="s-crit">0</div><div class="stat-lbl">critical done</div></div>
+    <div class="stat"><div class="stat-num" id="s-pct">0%</div><div class="stat-lbl">progress</div></div>
+  </div>
+
+  <div id="days"></div>
+</div>
+
+<script>
+const DAYS = [
+  {
+    day: "Monday", label: "W1 — System design",
+    color: "#185FA5", bgLight: "#E6F1FB", bgDark: "#042C53",
+    tasks: [
+      {id:"t1a", title:"Finalize system architecture decisions with team (Frontend / Backend / AI separation)", priority:"crit", file:"docs/architecture.md", output:"Architecture decision doc"},
+      {id:"t1b", title:"Begin ER diagram draft — list all 9 tables and their columns on paper first", priority:"crit", file:"sql/eqlab_schema.sql", output:"Draft schema"},
+    ]
+  },
+  {
+    day: "Tuesday", label: "W1 — Database",
+    color: "#3C3489", bgLight: "#EEEDFE", bgDark: "#26215C",
+    tasks: [
+      {id:"t1c", title:"Run eqlab_schema.sql in phpMyAdmin — create all 9 tables, verify PKs and FKs", priority:"crit", file:"sql/eqlab_schema.sql", tag:"db", output:"Live eqlab_db in XAMPP"},
+      {id:"t1d", title:"Insert 30+ sample questions into questions table (OECD domains + facets, mark reverse-scored)", priority:"crit", file:"phpMyAdmin", tag:"db", output:"Populated questions table"},
+    ]
+  },
+  {
+    day: "Wednesday", label: "W1 — APIs + Structure",
+    color: "#0F6E56", bgLight: "#E1F5EE", bgDark: "#04342C",
+    tasks: [
+      {id:"t2a", title:"Write api-flow.md — list every PHP file, its method, inputs, and JSON output format", priority:"high", file:"docs/api-flow.md", output:"Complete API spec doc"},
+      {id:"t4a", title:"Create GitHub repo, set up full folder structure, push initial commit to dev branch", priority:"crit", file:"EQLab/ root", output:"Live GitHub repo"},
+    ]
+  },
+  {
+    day: "Thursday", label: "W2 — Auth + Capture",
+    color: "#854F0B", bgLight: "#FAEEDA", bgDark: "#412402",
+    tasks: [
+      {id:"t5a", title:"Write includes/db.php (mysqli connection) and includes/auth.php (register, login, require_login, logout)", priority:"crit", file:"includes/db.php, auth.php", output:"Working auth — register + login tested in browser"},
+      {id:"t6a", title:"Write assessment/submit.php — capture POST responses, create session, save raw responses to DB", priority:"crit", file:"assessment/submit.php", output:"Responses saved to DB, verified in phpMyAdmin"},
+    ]
+  },
+  {
+    day: "Friday", label: "W2 — Scoring engine",
+    color: "#A32D2D", bgLight: "#FCEBEB", bgDark: "#501313",
+    tasks: [
+      {id:"t7a", title:"Write scoring/scoring_engine.php — facet mean, domain aggregation, reverse scoring, normalize 0–100, percentile calc, save to scores table", priority:"crit", file:"scoring/scoring_engine.php", output:"Scores + percentiles saved in DB after submission"},
+      {id:"t8a", title:"Write assessment/save_progress.php and get_progress.php — partial save + resume feature", priority:"high", file:"assessment/save_progress.php", output:"Partial progress saves and restores correctly"},
+    ]
+  },
+  {
+    day: "Saturday", label: "W3 — Profiling + AI",
+    color: "#72243E", bgLight: "#FBEAF0", bgDark: "#4B1528",
+    tasks: [
+      {id:"t9a", title:"Write profiling/profiling_engine.php — rule-based profile type (6 archetypes), strengths, weaknesses, priority_facets, save to eq_profiles", priority:"crit", file:"profiling/profiling_engine.php", tag:"ai", output:"EQ profile generated and stored after each assessment"},
+      {id:"t12a", title:"Write ai_module/ai_feedback.php — build prompt from profile data, call AI API via cURL, save response to eq_profiles.ai_feedback", priority:"high", file:"ai_module/ai_feedback.php", tag:"ai", output:"AI feedback text appears on results page"},
+      {id:"t10a", title:"Write scoring/get_history.php — fetch all sessions with timestamps and domain totals for trend chart", priority:"high", file:"scoring/get_history.php", output:"JSON array of historical scores returned correctly"},
+    ]
+  },
+  {
+    day: "Sunday", label: "W4 — Recommendations + Integration",
+    color: "#3B6D11", bgLight: "#EAF3DE", bgDark: "#173404",
+    tasks: [
+      {id:"t13a", title:"Write recommendations/recommendation_engine.php — detect weak facets, map to lessons, exclude completed, return ranked list", priority:"crit", file:"recommendations/recommendation_engine.php", output:"Personalised lesson list returned per user"},
+      {id:"t14a", title:"Write recommendations/log_progress.php and get_progress.php — log lesson/quiz actions, compute domain completion %", priority:"high", file:"recommendations/log_progress.php", output:"Progress % correct and updating"},
+      {id:"t15a", title:"Full end-to-end integration test — Register → Assess → Profile → Recommendations → Lesson → Progress. Fix all data mismatches.", priority:"crit", file:"All modules", output:"Complete user journey works without errors"},
+      {id:"t16a", title:"Deploy on XAMPP local server, record 3–5 min demo video of full user journey, commit final code to main branch", priority:"crit", file:"All files", output:"Demo video + clean main branch ready for submission"},
+    ]
+  }
+];
+
+const STORE_KEY = 'eqlab_tasks_v1';
+let checked = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+
+function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(checked)); }catch(e){} }
+
+function allTaskIds(){ return DAYS.flatMap(d => d.tasks.map(t => t.id)); }
+function totalTasks(){ return allTaskIds().length; }
+function doneTasks(){ return allTaskIds().filter(id => checked[id]).length; }
+function critTasks(){ return DAYS.flatMap(d=>d.tasks).filter(t=>t.priority==='crit').length; }
+function critDone(){ return DAYS.flatMap(d=>d.tasks).filter(t=>t.priority==='crit'&&checked[t.id]).length; }
+
+function updateStats(){
+  const done = doneTasks(), total = totalTasks();
+  const pct = Math.round(done/total*100);
+  document.getElementById('pbar').style.width = pct+'%';
+  document.getElementById('plabel').textContent = done+' / '+total+' done';
+  document.getElementById('s-done').textContent = done;
+  document.getElementById('s-left').textContent = total - done;
+  document.getElementById('s-crit').textContent = critDone()+' / '+critTasks();
+  document.getElementById('s-pct').textContent = pct+'%';
+}
+
+function toggleTask(id, el){
+  checked[id] = !checked[id];
+  save();
+  const row = el.closest('.task-row');
+  const cb = row.querySelector('.cb');
+  if(checked[id]){ row.classList.add('checked'); cb.classList.add('ticked'); }
+  else { row.classList.remove('checked'); cb.classList.remove('ticked'); }
+  updateStats();
+  updateDayHeader(id);
+}
+
+function getDayForTask(id){ return DAYS.find(d=>d.tasks.some(t=>t.id===id)); }
+
+function updateDayHeader(taskId){
+  const day = getDayForTask(taskId);
+  if(!day) return;
+  const done = day.tasks.filter(t=>checked[t.id]).length;
+  const total = day.tasks.length;
+  const prog = document.getElementById('prog-'+day.day);
+  if(prog) prog.textContent = done+'/'+total;
+}
+
+function toggleDay(dayName){
+  const list = document.getElementById('list-'+dayName);
+  const chev = document.getElementById('chev-'+dayName);
+  list.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
+function resetAll(){
+  checked = {};
+  save();
+  document.querySelectorAll('.task-row').forEach(r=>r.classList.remove('checked'));
+  document.querySelectorAll('.cb').forEach(c=>c.classList.remove('ticked'));
+  updateStats();
+  DAYS.forEach(d=>{
+    const prog = document.getElementById('prog-'+d.day);
+    if(prog) prog.textContent = '0/'+d.tasks.length;
+  });
+}
+
+function tagHTML(priority, tag){
+  let out = '';
+  if(priority==='crit') out += '<span class="tag tag-crit">critical</span>';
+  else out += '<span class="tag tag-high">high</span>';
+  if(tag==='ai') out += '<span class="tag tag-ai">AI module</span>';
+  if(tag==='db') out += '<span class="tag tag-db">database</span>';
+  return out;
+}
+
+function render(){
+  const container = document.getElementById('days');
+  DAYS.forEach((d,i)=>{
+    const doneCt = d.tasks.filter(t=>checked[t.id]).length;
+    const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+    const bg = isDark ? d.bgDark : d.bgLight;
+    const block = document.createElement('div');
+    block.className = 'day-block';
+    block.innerHTML = `
+      <div class="day-header" onclick="toggleDay('${d.day}')">
+        <div class="day-title">
+          <span style="width:10px;height:10px;border-radius:50%;background:${d.color};display:inline-block;flex-shrink:0"></span>
+          <span>${d.day}</span>
+          <span class="day-badge" style="background:${bg};color:${d.color}">${d.label}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="day-prog" id="prog-${d.day}">${doneCt}/${d.tasks.length}</span>
+          <span class="chevron ${i===0?'open':''}" id="chev-${d.day}">&#9660;</span>
+        </div>
+      </div>
+      <div class="task-list ${i===0?'open':''}" id="list-${d.day}">
+        ${d.tasks.map(t=>`
+          <div class="task-row ${checked[t.id]?'checked':''}" onclick="toggleTask('${t.id}', this)" id="row-${t.id}">
+            <div class="cb ${checked[t.id]?'ticked':''}"></div>
+            <div class="task-body">
+              <div class="task-title">${t.title}</div>
+              <div class="task-meta">
+                ${tagHTML(t.priority, t.tag)}
+                <span class="tag tag-file">${t.file}</span>
+                <span class="output-tag">→ ${t.output}</span>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+    container.appendChild(block);
+  });
+  updateStats();
+}
+
+render();
+</script>
